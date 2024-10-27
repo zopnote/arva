@@ -26,7 +26,7 @@ jobs:
 
       - name: Download SDL3 Source
         run: |
-          wget https://github.com/libsdl-org/SDL/archive/refs/tags/preview-3.1.3.zip -O sdl3.zip
+          curl -L -o sdl3.zip https://github.com/libsdl-org/SDL/archive/refs/tags/preview-3.1.3.zip
           unzip sdl3.zip
           mv SDL-preview-3.1.3 sdl3
 
