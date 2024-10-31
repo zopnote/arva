@@ -34,7 +34,7 @@ jobs:
           cd sdl
           git clone --branch ${{ env.SDL_VERSION }} --single-branch ${{ env.SDL_REPO }}
       - name: Building
-        working-directory: /sdl
+        working-directory: sdl
         run: |
           mkdir build
           cd build
