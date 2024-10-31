@@ -1,8 +1,8 @@
 name: 'SDL artifacts'
 on:
   push:
-    paths:
-      - .github/workflows/build_sdl.yml
+    branches:
+      - main
     tags:
       - 'v*'
 jobs:
