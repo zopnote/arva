@@ -1,6 +1,8 @@
 name: 'Create SDL artifacts'
 on:
   push:
+    branches:
+      - "main"
     tags:
       - 'v*'
 jobs:
