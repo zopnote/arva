@@ -28,15 +28,13 @@ jobs:
           libxkbcommon-dev libdrm-dev libgbm-dev libgl1-mesa-dev libgles2-mesa-dev \
           libegl1-mesa-dev libdbus-1-dev libibus-1.0-dev libudev-dev fcitx-libs-dev \
           libwayland-dev libpipewire-0.3-dev
-      - name: Clone repository of source at ${{ env.SDL_VERSION }}
+      - name: Clone repository of source at
         run: |
-          mkdir sdl
-          cd sdl
-          git clone --branch ${{ env.SDL_VERSION }} --single-branch ${{ env.SDL_REPO }}
+          git clone --depth 1 --branch ${{ env.SDL_VERSION }} https://github.com/libsdl-org/SDL
       - name: Building
-        working-directory: sdl
+        working-directory: SDL
         run: |
           mkdir build
           cd build
-          cmake .. -DSDL_STATIC=OFF -DSDL_SHARED=ON
+          cmake ../ -DSDL_STATIC=OFF -DSDL_SHARED=ON
           make -j$(nproc)
