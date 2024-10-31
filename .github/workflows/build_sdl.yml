@@ -29,7 +29,7 @@ jobs:
           libxkbcommon-dev libdrm-dev libgbm-dev libgl1-mesa-dev libgles2-mesa-dev \
           libegl1-mesa-dev libdbus-1-dev libibus-1.0-dev libudev-dev fcitx-libs-dev \
           libwayland-dev libpipewire-0.3-dev
-      - name: Clone repository of source at
+      - name: Clone repository of source
         run: |
           git clone --depth 1 --branch ${{ env.SDL_VERSION }} https://github.com/libsdl-org/SDL
       - name: Building
@@ -42,5 +42,5 @@ jobs:
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: 'sdl-${{env.SDL_VERSION}}-artifacts'
+          name: 'sdl-${{env.SDL_VERSION}}-linux'
           path: SDL/build/
