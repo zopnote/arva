@@ -1,0 +1,38 @@
+name: 'Create SDL artifacts'
+on:
+  push:
+    tags:
+      - 'v*'
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      SDL_VERSION: "preview-3.1.3"
+      SDL_REPO: "https://github.com/libsdl-org/SDL"
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Get build dependencies
+        run: |
+          sudo apt-get install build-essential git make \
+          pkg-config cmake ninja-build gnome-desktop-testing
+      - name: Get source dependencies
+        run: |
+          sudo apt-get install libasound2-dev libpulse-dev libaudio-dev \
+          libjack-dev libsndio-dev libx11-dev libxext-dev libdecor-0-dev \
+          libxrandr-dev libxcursor-dev libxfixes-dev libxi-dev libxss-dev \
+          libxkbcommon-dev libdrm-dev libgbm-dev libgl1-mesa-dev libgles2-mesa-dev \
+          libegl1-mesa-dev libdbus-1-dev libibus-1.0-dev libudev-dev fcitx-libs-dev \
+          libwayland-dev libpipewire-0.3-dev
+      - name: Clone repository of source at ${{ env.SDL_VERSION }}
+        run: |
+          mkdir sdl
+          cd sdl
+          git clone --branch ${{ env.SDL_VERSION }} --single-branch ${{ env.SDL_REPO }}
+      - name: Building
+        working-directory: /sdl
+        run: |
+          mkdir build
+          cd build
+          cmake .. -DSDL_STATIC=OFF -DSDL_SHARED=ON
+          make -j$(nproc)
