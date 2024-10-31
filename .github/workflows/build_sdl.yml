@@ -14,6 +14,8 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+      - name: Update packages
+        run: sudo apt-get update
       - name: Get build dependencies
         run: |
           sudo apt-get install build-essential git make \
