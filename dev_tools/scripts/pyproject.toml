@@ -1,0 +1,7 @@
+[project]
+name = "arva_sdk_dev_scripts"
+version = "dev-.1"
+dependencies = [
+    "pyyaml==6.0.2",
+    "pathlib==1.0.1"
+]

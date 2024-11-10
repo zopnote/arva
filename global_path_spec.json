@@ -1,9 +1,0 @@
-{
-  "name": "Arva Software Development Kit",
-  "description": "Modular development kit for the creation of various graphics software.",
-  "modules": {
-    "engine": {
-
-    }
-  }
-}
