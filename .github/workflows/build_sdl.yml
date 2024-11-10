@@ -1,12 +1,9 @@
 name: 'SDL artifacts'
 on:
   push:
-    branches:
-      - main
     tags:
       - 'v*'
 jobs:
-
   Linux:
     runs-on: ubuntu-latest
     env:
