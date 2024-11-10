@@ -1,0 +1,11 @@
+name: Example Game
+description: Example game to represent the intended yml structure.
+version: 'demo-dev-.1'
+sdk: '1.0'
+dependencies:
+  pub: 2.0
+  dart: 1.0
+artifact_bundles:
+  - 'steamworks'
+assets:
+  compile: true

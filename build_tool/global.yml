@@ -1,0 +1,43 @@
+project_build_information:
+  relative_root: ../../
+  license: "LICENSE"
+  readme: "README.md"
+  output_directory: "build/out/"
+sdk:
+  version: 0.1-dev
+  components:
+    - engine:
+        description: "Core engine of the sdk"
+        path: engine/build_engine.py
+    - mounter:
+        description: "The mounter is the sdk tooling for development features."
+        path: mounter/build_mounter.py
+    - tool:
+        description: "The tool contains the entry point and logic for the CLI."
+        path: bin/build_tool.py
+    - arva_package:
+        description: "Implementation for Dart of the desired SDK parts."
+        path: packages/arva/build_arva_package.py
+plugins:
+  description: "There are plugins for a few editors as interface for development."
+  version: 0.1-dev
+  components:
+    - vscode:
+        description: "VSCode plugin of the SDK."
+        path: plugins/vscode/build_vscode_plugin.py
+    - jetbrains:
+        description: "Jetbrains IDE plugin of the SDK."
+        path: plugin/jetbrains/build_jetbrains_plugin.py
+
+artifacts_bundle:
+  version: 0.1-dev
+  components:
+    - sdl:
+        description: "Simple Directmedia Layer as cross platform library for the interaction with the platforms."
+        version: "preview-3.1.0"
+    - llvm:
+        description: "LLVM to compile C code for production and run it in a JIT to enable hot reload."
+        version: "19.1.3"
+    - dart:
+        description: "Dart SDK to extract snapshots, runtimes and other binaries for Dart code compilation and running on the VM."
+        version: "3.5.0"
