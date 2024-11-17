@@ -5,7 +5,7 @@ class Device:
     def __init__(self):
         self.cpu_cores = multiprocessing.cpu_count()
         self.os = platform.system()
-        self.architecture = platform.architecture()[0]
+        self.architecture = platform.architecture()[:1]
         self.os_version = platform.version()
     def __str__(self):
         return (f"Device information:\n"

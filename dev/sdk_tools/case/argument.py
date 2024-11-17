@@ -2,9 +2,6 @@ import sys
 
 arguments = sys.argv[1:]
 
-def get_arguments():
-    return arguments
-
 def is_flag(condition):
     return condition in arguments
 

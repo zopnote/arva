@@ -1,5 +1,5 @@
-name: arva
-description: Dart package of the arva sdk.
+name: core
+description: Dart implementation of the core of Arva.
 version: 0.1.0
 
 environment:
