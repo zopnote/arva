@@ -41,12 +41,13 @@ jobs:
 
       - name: Generate build files for Linux
         run: |
-          cmake -G Ninja -B build_files -DSDL_VULKAN=ON -DSDL_OPENGL=ON
+          cmake -G Ninja -B build_files -DSDL_VULKAN=ON -DSDL_OPENGL=ON -DCMAKE_BUILD_TYPE=release
+          cd build_files
 
       - name: Build SDL3 for Linux
-        run: cmake --build .. --config Release
-
-
+        run: |
+          ninja
+          cd ..
 
       - name: Install Android NDK
         uses: nttld/setup-ndk@v1
@@ -66,7 +67,7 @@ jobs:
       - name: Build SDL3 for Android
         run: |
           cd build_files 
-          cmake --build .. --config Release
+          ninja
           
 
 
@@ -110,7 +111,7 @@ jobs:
       - name: Build SDL3 for Windows
         run: |
           cd build_files 
-          cmake --build .. --config Release
+          ninja
           
 
   macOS:
@@ -136,7 +137,7 @@ jobs:
 
       - name: Generate build files
         run: |
-          cmake  \
+          cmake \
             -B build_files \
             -G Ninja \
             -DSDL_METAL=ON \
@@ -145,9 +146,11 @@ jobs:
 
       - name: Build SDL3 for macOS
         run: |
-          cmake --build .. --config Release
+          ninja
 
       - name: Build SDL3 for iOS
         run: |
-          cmake .. -G Ninja -B build_files -DSDL_METAL=ON
-          cmake --build .. --config Release
+          cd ..
+          cmake -G Ninja -B build_files -DSDL_METAL=ON
+          cd build_files
+          ninja
