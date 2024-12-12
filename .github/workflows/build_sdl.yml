@@ -42,12 +42,9 @@ jobs:
           
           # Install Dart using the official Dart SDK instructions
           sudo apt-get install -y apt-transport-https wget
-          # Download and add the Google Linux GPG public key
           wget -qO- https://dl-ssl.google.com/linux/linux_signing_key.pub | sudo gpg --dearmor -o /usr/share/keyrings/dart.gpg
-          # Add the Dart package repository to your Linux system
           echo 'deb [signed-by=/usr/share/keyrings/dart.gpg arch=amd64] https://storage.googleapis.com/download.dartlang.org/linux/debian stable main' \
             | sudo tee /etc/apt/sources.list.d/dart_stable.list
-          # Update package index and install Dart
           sudo apt-get update
           sudo apt-get install -y dart
 
@@ -63,11 +60,19 @@ jobs:
         run: |
           choco install cmake ninja python3 visualstudio2022buildtools -y
           vcpkg install sdl2 sdl2-mixer sdl2-image sdl2-ttf
-          vcpkg remove --outdated  # Ensure that outdated dependencies are removed
+          vcpkg remove --outdated
           vcpkg install sdl2:x64-windows@2.30.9  # Specify version to avoid issues with dependencies
           vcpkg install libogg:x64-windows
           vcpkg install libvorbis:x64-windows
           choco install dart-sdk
+
+          # Install Visual Studio Build Tools (needed for Clang)
+          choco install visualstudio2022buildtools --package-parameters "--add Microsoft.VisualStudio.Workload.VCTools --includeRecommended" -y
+          
+          # Set up environment variables to ensure Clang can find the necessary libs
+          echo "Setting up environment variables for Clang and Visual Studio build tools"
+          echo "set LIB=C:/Program Files (x86)/Microsoft Visual Studio/2022/BuildTools/VC/Auxiliary/Build/..\..\..\..\lib/x64;%LIB%" >> $GITHUB_ENV
+          echo "set PATH=C:/Program Files (x86)/Microsoft Visual Studio/2022/BuildTools/VC/Auxiliary/Build/..\..\..\..\bin/HostX64/x64;%PATH%" >> $GITHUB_ENV
 
       - name: Install Android NDK
         if: matrix.target == 'android-vulkan-opengl'
@@ -90,7 +95,7 @@ jobs:
         run: |
           mkdir build
           cd build
-          cmake .. -G Ninja -DSDL_DIRECTX12=ON -DSDL_VULKAN=ON -DSDL_OPENGL=ON
+          cmake .. -G Ninja -DSDL_DIRECTX12=ON -DSDL_VULKAN=ON -DSDL_OPENGL=ON -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++
 
       - name: Configure build (Bash)
         if: runner.os == 'Linux' || runner.os == 'macOS'
