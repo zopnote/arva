@@ -31,25 +31,36 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Set up dependencies
+      - name: Set up dependencies (Linux)
         if: runner.os == 'Linux'
         run: |
           sudo apt-get update
-          sudo apt-get install -y build-essential dart-sdk cmake git python3 ninja-build \
+          sudo apt-get install -y build-essential cmake git python3 ninja-build \
           libvulkan-dev mesa-common-dev libx11-dev libxext-dev libxrandr-dev libxi-dev \
           libasound2-dev libpulse-dev libudev-dev libdbus-1-dev libwayland-dev wayland-protocols \
           libxkbcommon-dev libdrm-dev
+          # Install Dart
+          sudo apt-get install -y apt-transport-https
+          sudo sh -c 'wget -qO- https://storage.googleapis.com/download.dartlang.org/linux/debian/stable/dart_stable.key | apt-key add -'
+          sudo sh -c 'wget -qO- https://storage.googleapis.com/download.dartlang.org/linux/debian/stable/dart_stable.list > /etc/apt/sources.list.d/dart_stable.list'
+          sudo apt-get update
+          sudo apt-get install dart
 
-      - name: Set up dependencies
+      - name: Set up dependencies (macOS)
         if: runner.os == 'macOS'
         run: |
-          brew install cmake ninja python3 dart-sdk sdl2 sdl2_mixer sdl2_image sdl2_ttf pkg-config
+          brew install cmake ninja python3 sdl2 sdl2_mixer sdl2_image sdl2_ttf pkg-config
+          # Install Dart
+          brew tap dart-lang/dart
+          brew install dart
 
       - name: Set up dependencies (Windows)
         if: runner.os == 'Windows'
         run: |
-          choco install cmake ninja python3 dart-sdk visualstudio2022buildtools -y
+          choco install cmake ninja python3 visualstudio2022buildtools -y
           vcpkg install sdl2 sdl2-mixer sdl2-image sdl2-ttf
+          # Install Dart
+          choco install dart-sdk
 
       - name: Install Android NDK
         if: matrix.target == 'android-vulkan-opengl'
