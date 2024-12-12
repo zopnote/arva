@@ -53,9 +53,10 @@ jobs:
 
       - name: Install Android NDK
         if: matrix.target == 'android-vulkan-opengl'
-        uses: android-actions/setup-ndk@v2
+        uses: nttld/setup-ndk@v1
         with:
-          ndk-version: r25b
+          ndk-version: r26d
+          add-to-path: 'true'
 
       - name: Install Emscripten
         if: matrix.target == 'web-emscripten-webgl'
