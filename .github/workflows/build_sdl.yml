@@ -35,7 +35,7 @@ jobs:
         if: runner.os == 'Linux'
         run: |
           sudo apt-get update
-          sudo apt-get install -y build-essential cmake git python3 ninja-build \
+          sudo apt-get install -y build-essential dart cmake git python3 ninja-build \
           libvulkan-dev mesa-common-dev libx11-dev libxext-dev libxrandr-dev libxi-dev \
           libasound2-dev libpulse-dev libudev-dev libdbus-1-dev libwayland-dev wayland-protocols \
           libxkbcommon-dev libdrm-dev
@@ -43,12 +43,12 @@ jobs:
       - name: Set up dependencies
         if: runner.os == 'macOS'
         run: |
-          brew install cmake ninja python3 sdl2 sdl2_mixer sdl2_image sdl2_ttf pkg-config
+          brew install cmake ninja python3 dart sdl2 sdl2_mixer sdl2_image sdl2_ttf pkg-config
 
       - name: Set up dependencies (Windows)
         if: runner.os == 'Windows'
         run: |
-          choco install cmake ninja python3 visualstudio2022buildtools -y
+          choco install cmake ninja python3 dart visualstudio2022buildtools -y
           vcpkg install sdl2 sdl2-mixer sdl2-image sdl2-ttf
 
       - name: Install Android NDK
