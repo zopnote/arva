@@ -4,43 +4,26 @@ on:
   push:
     branches:
       - main
-  pull_request:
 
 jobs:
-  build:
-    strategy:
-      matrix:
-        platform: [macos-latest, ubuntu-latest, windows-latest]
-        include:
-          - platform: macos-latest
-            target: macos-metal-moltenvk
-          - platform: ubuntu-latest
-            target: linux-vulkan-opengl
-          - platform: windows-latest
-            target: windows-directx12-vulkan-opengl
-          - platform: ubuntu-latest
-            target: web-emscripten-webgl
-          - platform: macos-latest
-            target: ios-metal
-          - platform: ubuntu-latest
-            target: android-vulkan-opengl
-            android: true
-    runs-on: ${{ matrix.platform }}
 
+  linux:
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Set up dependencies (Linux)
-        if: runner.os == 'Linux'
+
+      - name: Set up dependencies
         run: |
           sudo apt-get update
           sudo apt-get install -y build-essential cmake git python3 ninja-build \
           libvulkan-dev mesa-common-dev libx11-dev libxext-dev libxrandr-dev libxi-dev \
           libasound2-dev libpulse-dev libudev-dev libdbus-1-dev libwayland-dev wayland-protocols \
           libxkbcommon-dev libdrm-dev     
-          
-          # Install Dart using the official Dart SDK instructions
+
+      - name: Set up Dart SDK
+        run: |
           sudo apt-get install -y apt-transport-https wget
           wget -qO- https://dl-ssl.google.com/linux/linux_signing_key.pub | sudo gpg --dearmor -o /usr/share/keyrings/dart.gpg
           echo 'deb [signed-by=/usr/share/keyrings/dart.gpg arch=amd64] https://storage.googleapis.com/download.dartlang.org/linux/debian stable main' \
@@ -48,91 +31,97 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y dart
 
-      - name: Set up dependencies (macOS)
-        if: runner.os == 'macOS'
+      - name: Generate build files for Linux
         run: |
-          brew install cmake ninja python3 sdl2 sdl2_mixer sdl2_image sdl2_ttf pkg-config
-          brew tap dart-lang/dart
-          brew install dart
+          cmake .. -G Ninja -B build_files -DSDL_VULKAN=ON -DSDL_OPENGL=ON
 
-      - name: Set up dependencies (Windows)
-        if: runner.os == 'Windows'
-        run: |
-          choco install cmake llvm ninja python3 visualstudio2022buildtools -y
-          vcpkg install sdl2 sdl2-mixer sdl2-image sdl2-ttf
-          vcpkg remove --outdated
-          vcpkg install sdl2:x64-windows@2.30.9  # Specify version to avoid issues with dependencies
-          vcpkg install libogg:x64-windows
-          vcpkg install libvorbis:x64-windows
-          choco install dart-sdk
+      - name: Build SDL3 for Linux
+        run: cmake --build . --config Release
 
-          # Install Visual Studio Build Tools (needed for Clang)
-          choco install visualstudio2022buildtools --package-parameters "--add Microsoft.VisualStudio.Workload.VCTools --includeRecommended" -y
-          
-          # Set up environment variables to ensure Clang can find the necessary libs
-          echo "Setting up environment variables for Clang and Visual Studio build tools"
-          echo "set LIB=C:/Program Files (x86)/Microsoft Visual Studio/2022/BuildTools/VC/Auxiliary/Build/..\..\..\..\lib/x64;%LIB%" >> $GITHUB_ENV
-          echo "set PATH=C:/Program Files (x86)/Microsoft Visual Studio/2022/BuildTools/VC/Auxiliary/Build/..\..\..\..\bin/HostX64/x64;%PATH%" >> $GITHUB_ENV
+
 
       - name: Install Android NDK
-        if: matrix.target == 'android-vulkan-opengl'
         uses: nttld/setup-ndk@v1
         with:
           ndk-version: r26d
           add-to-path: 'true'
 
-      - name: Install Emscripten
-        if: matrix.target == 'web-emscripten-webgl'
+      - name: Generate build files for Android
         run: |
-          git clone https://github.com/emscripten-core/emsdk.git
-          cd emsdk
-          ./emsdk install latest
-          ./emsdk activate latest
-          source ./emsdk_env.sh
+          cmake .. \
+            -G Ninja \
+            -B build_files \
+            -DSDL_VULKAN=ON \
+            -DSDL_OPENGL=ON \
+            -DCMAKE_TOOLCHAIN_FILE=$ANDROID_NDK_HOME/build/cmake/android.toolchain.cmake
 
-      - name: Build (Powershell)
-        if: runner.os == 'Windows'
+      - name: Build SDL3 for Android
         run: |
-          mkdir build
-          cd build
-          cmake .. -G Ninja -DSDL_DIRECTX12=ON -DSDL_VULKAN=ON -DSDL_OPENGL=ON
-          ninja
+          cd build_files 
+          cmake --build . --config Release
+          
 
-      - name: Build (Bash)
-        if: runner.os == 'Linux' || runner.os == 'macOS'
+
+
+
+  windows:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Install dependencies
         run: |
-          mkdir build
-          cd build
-          case ${{ matrix.target }} in
-            macos-metal-moltenvk)
-              cmake .. -G Ninja -DSDL_METAL=ON -DSDL_VULKAN=ON
-              ;;
-            linux-vulkan-opengl)
-              cmake .. -G Ninja -DSDL_VULKAN=ON -DSDL_OPENGL=ON
-              ;;
-            web-emscripten-webgl)
-              source ../emsdk/emsdk_env.sh
-              cmake .. -G Ninja -DSDL_WEBGL=ON
-              ;;
-            ios-metal)
-              cmake .. -G Ninja -DSDL_METAL=ON
-              ;;
-            android-vulkan-opengl)
-              cmake .. -G Ninja -DSDL_VULKAN=ON -DSDL_OPENGL=ON -DCMAKE_TOOLCHAIN_FILE=$ANDROID_NDK_HOME/build/cmake/android.toolchain.cmake
-              ;;
-          esac
-          ninja
+          choco install -y cmake dart-sdk visualstudio2022buildtools visualstudio2022-workload-vctools vulkan-sdk
 
-      - name: Archive build artifacts
+      - name: Set up Vulkan SDK
         run: |
-          mkdir -p ios-metal
-          cp -r build/* ios-metal/
-          cp -r build/CMakeFiles ios-metal/
-          cp -r build/bin ios-metal/
-          cp -r build/core ios-metal/
+          setx VULKAN_SDK "C:\VulkanSDK\1.3.261.1" /M
+          setx PATH "%VULKAN_SDK%\Bin;%PATH%" /M
+          setx VK_ICD_FILENAMES "%VULKAN_SDK%\etc\vulkan\icd.d" /M
+          setx VK_LAYER_PATH "%VULKAN_SDK%\etc\vulkan\explicit_layer.d" /M
 
-      - name: Upload artifacts
-        uses: actions/upload-artifact@v3
-        with:
-          name: SDL3-${{ matrix.target }}
-          path: ios-metal/
+      - name: Generate build files
+        run: |
+          cmake -S . -B build_files \
+            -G "Visual Studio 17 2022" \
+            -A x64 \
+            -DSDL_VULKAN=ON \
+            -DSDL_OPENGL=ON \
+            -DSDL_DIRECTX=ON
+
+      - name: Build SDL3 for Windows
+        run: |
+          cd build_files 
+          cmake --build . --config Release
+          
+
+  macOS:
+    runs-on: macos-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup dependencies
+        run: |
+          brew install cmake ninja python3 sdl2 sdl2_mixer sdl2_image sdl2_ttf pkg-config
+          brew tap dart-lang/dart
+          brew install dart
+
+      - name: Generate build files
+        run: |
+          cmake .. \
+            -B build_files \
+            -G Ninja \
+            -DSDL_METAL=ON \
+            -DSDL_VULKAN=ON
+      - name: Build SDL3 for macOS
+        run: |
+          cd out_build
+          cmake --build . --config Release
+
+      - name: Build SDL3 for iOS
+        run: |
+          cmake .. -G Ninja -B build_files -DSDL_METAL=ON
+          cd build_files
+          cmake --build . --config Release
