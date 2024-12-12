@@ -1,6 +1,6 @@
 import sys
 
-arguments = sys.argv[1:]
+
 
 def is_flag(condition):
     return condition in arguments
