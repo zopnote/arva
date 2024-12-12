@@ -1,43 +1,109 @@
-name: 'SDL artifacts'
+name: Build SDL3 for Multiple Platforms
+
 on:
   push:
-    tags:
-      - 'v*'
+    branches:
+      - main
+  pull_request:
+
 jobs:
-  Linux:
-    runs-on: ubuntu-latest
-    env:
-      SDL_VERSION: "preview-3.1.3"
-      SDL_REPO: "https://github.com/libsdl-org/SDL"
+  build:
+    strategy:
+      matrix:
+        platform: [macos-latest, ubuntu-latest, windows-latest]
+        include:
+          - platform: macos-latest
+            target: macos-metal-moltenvk
+          - platform: ubuntu-latest
+            target: linux-vulkan-opengl
+          - platform: windows-latest
+            target: windows-directx12-vulkan-opengl
+          - platform: ubuntu-latest
+            target: web-emscripten-webgl
+          - platform: macos-latest
+            target: ios-metal
+          - platform: ubuntu-latest
+            target: android-vulkan-opengl
+            android: true
+    runs-on: ${{ matrix.platform }}
+
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-      - name: Update packages
-        run: sudo apt-get update
-      - name: Get build dependencies
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up dependencies
+        if: runner.os == 'Linux'
         run: |
-          sudo apt-get install build-essential git make \
-          pkg-config cmake ninja-build gnome-desktop-testing
-      - name: Get source dependencies
+          sudo apt-get update
+          sudo apt-get install -y build-essential cmake git python3 ninja-build \
+          libvulkan-dev mesa-common-dev libx11-dev libxext-dev libxrandr-dev libxi-dev \
+          libasound2-dev libpulse-dev libudev-dev libdbus-1-dev libwayland-dev wayland-protocols \
+          libxkbcommon-dev libdrm-dev
+
+      - name: Set up dependencies
+        if: runner.os == 'macOS'
         run: |
-          sudo apt-get install libasound2-dev libpulse-dev libaudio-dev \
-          libjack-dev libsndio-dev libx11-dev libxext-dev libdecor-0-dev \
-          libxrandr-dev libxcursor-dev libxfixes-dev libxi-dev libxss-dev \
-          libxkbcommon-dev libdrm-dev libgbm-dev libgl1-mesa-dev libgles2-mesa-dev \
-          libegl1-mesa-dev libdbus-1-dev libibus-1.0-dev libudev-dev fcitx-libs-dev \
-          libwayland-dev libpipewire-0.3-dev
-      - name: Clone repository of source
+          brew install cmake ninja python3 sdl2 sdl2_mixer sdl2_image sdl2_ttf pkg-config
+
+      - name: Set up dependencies (Windows)
+        if: runner.os == 'Windows'
         run: |
-          git clone --depth 1 --branch ${{ env.SDL_VERSION }} https://github.com/libsdl-org/SDL
-      - name: Building
-        working-directory: SDL
+          choco install cmake ninja python3 visualstudio2022buildtools -y
+          vcpkg install sdl2 sdl2-mixer sdl2-image sdl2-ttf
+
+      - name: Install Android NDK
+        if: matrix.target == 'android-vulkan-opengl'
+        uses: android-actions/setup-ndk@v2
+        with:
+          ndk-version: r25b
+
+      - name: Install Emscripten
+        if: matrix.target == 'web-emscripten-webgl'
+        run: |
+          git clone https://github.com/emscripten-core/emsdk.git
+          cd emsdk
+          ./emsdk install latest
+          ./emsdk activate latest
+          source ./emsdk_env.sh
+
+      - name: Configure build
         run: |
           mkdir build
           cd build
-          cmake ../ -DSDL_STATIC=OFF -DSDL_SHARED=ON
-          make -j$(nproc)
+          case ${{ matrix.target }} in
+            macos-metal-moltenvk)
+              cmake .. -G Ninja -DSDL_METAL=ON -DSDL_VULKAN=ON
+              ;;
+            linux-vulkan-opengl)
+              cmake .. -G Ninja -DSDL_VULKAN=ON -DSDL_OPENGL=ON
+              ;;
+            windows-directx12-vulkan-opengl)
+              cmake .. -G Ninja -DSDL_DIRECTX12=ON -DSDL_VULKAN=ON -DSDL_OPENGL=ON
+              ;;
+            web-emscripten-webgl)
+              source ../emsdk/emsdk_env.sh
+              cmake .. -G Ninja -DSDL_WEBGL=ON
+              ;;
+            ios-metal)
+              cmake .. -G Ninja -DSDL_METAL=ON
+              ;;
+            android-vulkan-opengl)
+              cmake .. -G Ninja -DSDL_VULKAN=ON -DSDL_OPENGL=ON -DCMAKE_TOOLCHAIN_FILE=$ANDROID_NDK_HOME/build/cmake/android.toolchain.cmake
+              ;;
+          esac
+
+      - name: Build SDL3
+        run: |
+          cd build
+          ninja
+
+      - name: Archive build artifacts
+        run: |
+          mkdir -p ${{ matrix.target }}
+          cp build/* ${{ matrix.target }}/
+
       - name: Upload artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v3
         with:
-          name: 'sdl-${{env.SDL_VERSION}}-linux'
-          path: SDL/build/
+          name: SDL3-${{ matrix.target }}
+          path: ${{ matrix.target }}

@@ -1,0 +1,2 @@
+[download_artifacts]
+sdl = "https://addvertex.com/arva-engine/artifacts/precompiled/sdl_{[SDK_VERSION]}/"

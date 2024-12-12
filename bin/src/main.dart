@@ -1,3 +1,6 @@
-void main() {
-  print('Hello World');
+void main(List<String> args) {
+  if (args.length < 1) {
+    return;
+  }
+
 }
