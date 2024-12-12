@@ -90,14 +90,15 @@ jobs:
           ./emsdk activate latest
           source ./emsdk_env.sh
 
-      - name: Configure build (Powershell)
+      - name: Build (Powershell)
         if: runner.os == 'Windows'
         run: |
           mkdir build
           cd build
-          cmake .. -G Ninja -DSDL_DIRECTX12=ON -DSDL_VULKAN=ON -DSDL_OPENGL=ON -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++
+          cmake .. -G Ninja -DSDL_DIRECTX12=ON -DSDL_VULKAN=ON -DSDL_OPENGL=ON
+          ninja
 
-      - name: Configure build (Bash)
+      - name: Build (Bash)
         if: runner.os == 'Linux' || runner.os == 'macOS'
         run: |
           mkdir build
@@ -120,10 +121,6 @@ jobs:
               cmake .. -G Ninja -DSDL_VULKAN=ON -DSDL_OPENGL=ON -DCMAKE_TOOLCHAIN_FILE=$ANDROID_NDK_HOME/build/cmake/android.toolchain.cmake
               ;;
           esac
-
-      - name: Build SDL3
-        run: |
-          cd build
           ninja
 
       - name: Archive build artifacts

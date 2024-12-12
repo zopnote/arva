@@ -2,9 +2,10 @@ import 'dart:io';
 import 'dart:isolate';
 
 import 'config.dart' as config;
+import 'environment.dart';
 
 File get log {
-  final String filePath = '${File(Platform.script.path).parent.parent.path}/log';
+  final String filePath = '${getScriptFolder()}/internal/';
   if (Platform.isWindows) {
     return File(filePath.substring(1));
   }
