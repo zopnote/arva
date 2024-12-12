@@ -75,55 +75,62 @@ jobs:
           ./emsdk activate latest
           source ./emsdk_env.sh
 
-      - name: Set up environment
+      - name: Configure build (Powershell)
+        if: runner.os == 'Windows'
         run: |
-          if [[ "$RUNNER_OS" == "Linux" || "$RUNNER_OS" == "macOS" ]]; then
-            echo "Setting up for $RUNNER_OS"
-            mkdir build
-            cd build
-            case ${{ matrix.target }} in
-              'macos-metal-moltenvk')
-                cmake .. -G Ninja -DSDL_METAL=ON -DSDL_VULKAN=ON
-                ;;
-              'linux-vulkan-opengl')
-                cmake .. -G Ninja -DSDL_VULKAN=ON -DSDL_OPENGL=ON
-                ;;
-              'windows-directx12-vulkan-opengl')
-                cmake .. -G Ninja -DSDL_DIRECTX12=ON -DSDL_VULKAN=ON -DSDL_OPENGL=ON
-                ;;
-              'web-emscripten-webgl')
-                source ../emsdk/emsdk_env.sh
-                cmake .. -G Ninja -DSDL_WEBGL=ON
-                ;;
-              'ios-metal')
-                cmake .. -G Ninja -DSDL_METAL=ON
-                ;;
-              'android-vulkan-opengl')
-                cmake .. -G Ninja -DSDL_VULKAN=ON -DSDL_OPENGL=ON -DCMAKE_TOOLCHAIN_FILE=$ANDROID_NDK_HOME/build/cmake/android.toolchain.cmake
-                ;;
-              *)
-                echo "Unknown target: ${{ matrix.target }}"
-                exit 1
-                ;;
-            esac
-          elif [[ "$RUNNER_OS" == "Windows" ]]; then
-            echo "Setting up for $RUNNER_OS"
-            mkdir build
-            cd build
-            powershell -Command "
-              switch (`$env:TARGET) {
-                'macos-metal-moltenvk' { cmake .. -G Ninja -DSDL_METAL=ON -DSDL_VULKAN=ON }
-                'linux-vulkan-opengl' { cmake .. -G Ninja -DSDL_VULKAN=ON -DSDL_OPENGL=ON }
-                'windows-directx12-vulkan-opengl' { cmake .. -G Ninja -DSDL_DIRECTX12=ON -DSDL_VULKAN=ON -DSDL_OPENGL=ON }
-                'web-emscripten-webgl' { cmake .. -G Ninja -DSDL_WEBGL=ON }
-                'ios-metal' { cmake .. -G Ninja -DSDL_METAL=ON }
-                'android-vulkan-opengl' { cmake .. -G Ninja -DSDL_VULKAN=ON -DSDL_OPENGL=ON -DCMAKE_TOOLCHAIN_FILE=`$env:ANDROID_NDK_HOME/build/cmake/android.toolchain.cmake }
-                default { Write-Error 'Unknown target: `$env:TARGET' }
-              }
-            "
-          fi
-        env:
-          TARGET: ${{ matrix.target }}
+          mkdir build
+          cd build
+          switch (${{ matrix.target }}) {
+            'macos-metal-moltenvk' {
+              cmake .. -G Ninja -DSDL_METAL=ON -DSDL_VULKAN=ON
+            }
+            'linux-vulkan-opengl' {
+              cmake .. -G Ninja -DSDL_VULKAN=ON -DSDL_OPENGL=ON
+            }
+            'windows-directx12-vulkan-opengl' {
+              cmake .. -G Ninja -DSDL_DIRECTX12=ON -DSDL_VULKAN=ON -DSDL_OPENGL=ON
+            }
+            'web-emscripten-webgl' {
+              source ../emsdk/emsdk_env.sh
+              cmake .. -G Ninja -DSDL_WEBGL=ON
+            }
+            'ios-metal' {
+              cmake .. -G Ninja -DSDL_METAL=ON
+            }
+            'android-vulkan-opengl' {
+              cmake .. -G Ninja -DSDL_VULKAN=ON -DSDL_OPENGL=ON -DCMAKE_TOOLCHAIN_FILE=$env:ANDROID_NDK_HOME/build/cmake/android.toolchain.cmake
+            }
+            default {
+              Write-Error "Unknown target: ${{ matrix.target }}"
+            }
+          }
+
+      - name: Configure build (Bash)
+        if: runner.os == 'Linux' || runner.os == 'macOS'
+        run: |
+          mkdir build
+          cd build
+          case ${{ matrix.target }} in
+            macos-metal-moltenvk)
+              cmake .. -G Ninja -DSDL_METAL=ON -DSDL_VULKAN=ON
+              ;;
+            linux-vulkan-opengl)
+              cmake .. -G Ninja -DSDL_VULKAN=ON -DSDL_OPENGL=ON
+              ;;
+            windows-directx12-vulkan-opengl)
+              cmake .. -G Ninja -DSDL_DIRECTX12=ON -DSDL_VULKAN=ON -DSDL_OPENGL=ON
+              ;;
+            web-emscripten-webgl)
+              source ../emsdk/emsdk_env.sh
+              cmake .. -G Ninja -DSDL_WEBGL=ON
+              ;;
+            ios-metal)
+              cmake .. -G Ninja -DSDL_METAL=ON
+              ;;
+            android-vulkan-opengl)
+              cmake .. -G Ninja -DSDL_VULKAN=ON -DSDL_OPENGL=ON -DCMAKE_TOOLCHAIN_FILE=$ANDROID_NDK_HOME/build/cmake/android.toolchain.cmake
+              ;;
+          esac
 
       - name: Build SDL3
         run: |

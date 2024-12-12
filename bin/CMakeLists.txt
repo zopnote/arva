@@ -21,3 +21,4 @@ add_custom_target(compile_dart ALL DEPENDS ${OUTPUT_EXECUTABLE})
 
 install(FILES ${OUTPUT_EXECUTABLE} DESTINATION bin)
 install(FILES ${CMAKE_SOURCE_DIR}/bin/README.md DESTINATION bin)
+install(FILES ${CMAKE_SOURCE_DIR}/bin/deps.toml DESTINATION bin)
