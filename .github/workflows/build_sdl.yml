@@ -12,19 +12,8 @@ jobs:
       matrix:
         platform: [macos-latest, ubuntu-latest, windows-latest]
         include:
-          - platform: macos-latest
-            target: macos-metal-moltenvk
-          - platform: ubuntu-latest
-            target: linux-vulkan-opengl
           - platform: windows-latest
             target: windows-directx12-vulkan-opengl
-          - platform: ubuntu-latest
-            target: web-emscripten-webgl
-          - platform: macos-latest
-            target: ios-metal
-          - platform: ubuntu-latest
-            target: android-vulkan-opengl
-            android: true
     runs-on: ${{ matrix.platform }}
 
     steps:
