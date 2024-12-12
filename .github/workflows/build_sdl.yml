@@ -39,12 +39,20 @@ jobs:
           libvulkan-dev mesa-common-dev libx11-dev libxext-dev libxrandr-dev libxi-dev \
           libasound2-dev libpulse-dev libudev-dev libdbus-1-dev libwayland-dev wayland-protocols \
           libxkbcommon-dev libdrm-dev
-          # Install Dart
-          sudo apt-get install -y apt-transport-https
-          sudo sh -c 'wget -qO- https://storage.googleapis.com/download.dartlang.org/linux/debian/stable/dart_stable.key | tee /etc/apt/trusted.gpg.d/dart_stable.asc'
-          sudo sh -c 'wget -qO- https://storage.googleapis.com/download.dartlang.org/linux/debian/stable/dart_stable.list > /etc/apt/sources.list.d/dart_stable.list'
+
+          # Install Dart using the official Dart SDK instructions
+          sudo apt-get install -y apt-transport-https wget
+
+          # Download and add the Google Linux GPG public key
+          wget -qO- https://dl-ssl.google.com/linux/linux_signing_key.pub | sudo gpg --dearmor -o /usr/share/keyrings/dart.gpg
+
+          # Add the Dart package repository to your Linux system
+          echo 'deb [signed-by=/usr/share/keyrings/dart.gpg arch=amd64] https://storage.googleapis.com/download.dartlang.org/linux/debian stable main' \
+            | sudo tee /etc/apt/sources.list.d/dart_stable.list
+
+          # Update package index and install Dart
           sudo apt-get update
-          sudo apt-get install dart
+          sudo apt-get install -y dart
 
       - name: Set up dependencies (macOS)
         if: runner.os == 'macOS'
