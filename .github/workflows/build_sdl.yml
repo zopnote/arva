@@ -39,36 +39,25 @@ jobs:
           libvulkan-dev mesa-common-dev libx11-dev libxext-dev libxrandr-dev libxi-dev \
           libasound2-dev libpulse-dev libudev-dev libdbus-1-dev libwayland-dev wayland-protocols \
           libxkbcommon-dev libdrm-dev
-
-          # Install Dart using the official Dart SDK instructions
-          sudo apt-get install -y apt-transport-https wget
-
-          # Download and add the Google Linux GPG public key
+          sudo apt-get install apt-transport-https
           wget -qO- https://dl-ssl.google.com/linux/linux_signing_key.pub | sudo gpg --dearmor -o /usr/share/keyrings/dart.gpg
-
-          # Add the Dart package repository to your Linux system
-          echo 'deb [signed-by=/usr/share/keyrings/dart.gpg arch=amd64] https://storage.googleapis.com/download.dartlang.org/linux/debian stable main' \
-            | sudo tee /etc/apt/sources.list.d/dart_stable.list
-
-          # Update package index and install Dart
-          sudo apt-get update
-          sudo apt-get install -y dart
+          echo 'deb [signed-by=/usr/share/keyrings/dart.gpg arch=amd64] https://storage.googleapis.com/download.dartlang.org/linux/debian stable main' | sudo tee /etc/apt/sources.list.d/dart_stable.list
+          sudo apt-get update && sudo apt-get install dart
 
       - name: Set up dependencies (macOS)
         if: runner.os == 'macOS'
         run: |
           brew install cmake ninja python3 sdl2 sdl2_mixer sdl2_image sdl2_ttf pkg-config
-          # Install Dart
-          brew tap dart-lang/dart
-          brew install dart
 
       - name: Set up dependencies (Windows)
         if: runner.os == 'Windows'
         run: |
           choco install cmake ninja python3 visualstudio2022buildtools -y
           vcpkg install sdl2 sdl2-mixer sdl2-image sdl2-ttf
-          # Install Dart
-          choco install dart-sdk
+          vcpkg remove --outdated  # Ensure that outdated dependencies are removed
+          vcpkg install sdl2:x64-windows@2.30.9  # Specify version to avoid issues with dependencies
+          vcpkg install libogg:x64-windows
+          vcpkg install libvorbis:x64-windows
 
       - name: Install Android NDK
         if: matrix.target == 'android-vulkan-opengl'
@@ -90,27 +79,30 @@ jobs:
         run: |
           mkdir build
           cd build
-          case ${{ matrix.target }} in
-            macos-metal-moltenvk)
+          switch (${{ matrix.target }}) {
+            'macos-metal-moltenvk' {
               cmake .. -G Ninja -DSDL_METAL=ON -DSDL_VULKAN=ON
-              ;;
-            linux-vulkan-opengl)
+            }
+            'linux-vulkan-opengl' {
               cmake .. -G Ninja -DSDL_VULKAN=ON -DSDL_OPENGL=ON
-              ;;
-            windows-directx12-vulkan-opengl)
+            }
+            'windows-directx12-vulkan-opengl' {
               cmake .. -G Ninja -DSDL_DIRECTX12=ON -DSDL_VULKAN=ON -DSDL_OPENGL=ON
-              ;;
-            web-emscripten-webgl)
+            }
+            'web-emscripten-webgl' {
               source ../emsdk/emsdk_env.sh
               cmake .. -G Ninja -DSDL_WEBGL=ON
-              ;;
-            ios-metal)
+            }
+            'ios-metal' {
               cmake .. -G Ninja -DSDL_METAL=ON
-              ;;
-            android-vulkan-opengl)
-              cmake .. -G Ninja -DSDL_VULKAN=ON -DSDL_OPENGL=ON -DCMAKE_TOOLCHAIN_FILE=$ANDROID_NDK_HOME/build/cmake/android.toolchain.cmake
-              ;;
-          esac
+            }
+            'android-vulkan-opengl' {
+              cmake .. -G Ninja -DSDL_VULKAN=ON -DSDL_OPENGL=ON -DCMAKE_TOOLCHAIN_FILE=$env:ANDROID_NDK_HOME/build/cmake/android.toolchain.cmake
+            }
+            default {
+              Write-Error "Unknown target: ${{ matrix.target }}"
+            }
+          }
 
       - name: Build SDL3
         run: |
@@ -119,11 +111,14 @@ jobs:
 
       - name: Archive build artifacts
         run: |
-          mkdir -p ${{ matrix.target }}
-          cp -r build/* ${{ matrix.target }}/
+          mkdir -p ios-metal
+          cp -r build/* ios-metal/
+          cp -r build/CMakeFiles ios-metal/
+          cp -r build/bin ios-metal/
+          cp -r build/core ios-metal/
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v3
         with:
           name: SDL3-${{ matrix.target }}
-          path: ${{ matrix.target }}
+          path: ios-metal/
