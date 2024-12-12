@@ -58,7 +58,7 @@ jobs:
       - name: Set up dependencies (Windows)
         if: runner.os == 'Windows'
         run: |
-          choco install cmake ninja python3 visualstudio2022buildtools -y
+          choco install cmake llvm ninja python3 visualstudio2022buildtools -y
           vcpkg install sdl2 sdl2-mixer sdl2-image sdl2-ttf
           vcpkg remove --outdated
           vcpkg install sdl2:x64-windows@2.30.9  # Specify version to avoid issues with dependencies
