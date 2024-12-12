@@ -120,7 +120,7 @@ jobs:
       - name: Archive build artifacts
         run: |
           mkdir -p ${{ matrix.target }}
-          cp build/* ${{ matrix.target }}/
+          cp -r build/* ${{ matrix.target }}/
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v3
