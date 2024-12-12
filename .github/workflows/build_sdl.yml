@@ -29,12 +29,15 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y dart
 
-      - name: Get SDL3 Source
+      - name: Download SDL3 Source
         run: |
-          curl -L -o SDL.zip https://github.com/libsdl-org/SDL/releases/download/preview-3.1.6/SDL3-3.1.6.zip
-          unzip SDL.zip
-          cd SDL
-          ls
+          curl -L -o SDL3.zip https://github.com/libsdl-org/SDL/releases/download/preview-3.1.6/SDL3-3.1.6.zip
+
+      - name: Extract SDL3 Source
+        run: |
+          sudo apt-get install -y unzip
+          unzip SDL3.zip -d SDL3_extracted
+          cd SDL3_extracted
 
       - name: Generate build files for Linux
         run: |
@@ -86,6 +89,15 @@ jobs:
           setx VK_ICD_FILENAMES "%VULKAN_SDK%\etc\vulkan\icd.d" /M
           setx VK_LAYER_PATH "%VULKAN_SDK%\etc\vulkan\explicit_layer.d" /M
 
+      - name: Download SDL3 Source
+        run: |
+          curl -L -o SDL3.zip https://github.com/libsdl-org/SDL/releases/download/preview-3.1.6/SDL3-3.1.6.zip
+
+      - name: Extract SDL3 Source
+        run: |
+          unzip SDL3.zip -d SDL3_extracted
+          cd SDL3_extracted
+
       - name: Generate build files
         run: |
           cmake -S . -B build_files \
@@ -112,6 +124,15 @@ jobs:
           brew install cmake ninja python3 sdl2 sdl2_mixer sdl2_image sdl2_ttf pkg-config
           brew tap dart-lang/dart
           brew install dart
+
+      - name: Download SDL3 Source
+        run: |
+          curl -L -o SDL3.zip https://github.com/libsdl-org/SDL/releases/download/preview-3.1.6/SDL3-3.1.6.zip
+
+      - name: Extract SDL3 Source
+        run: |
+          unzip SDL3.zip -d SDL3_extracted
+          cd SDL3_extracted
 
       - name: Generate build files
         run: |
