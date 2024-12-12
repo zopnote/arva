@@ -4,4 +4,4 @@ environment:
   sdk: ^3.4.0
 
 dependencies:
-  - toml:
+  toml: ^0.16.0

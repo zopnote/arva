@@ -90,7 +90,8 @@ jobs:
         run: |
           mkdir build
           cd build
-          switch (${{ matrix.target }}) {
+          $target = ${{ matrix.target }}
+          switch ($target) {
             'macos-metal-moltenvk' {
               cmake .. -G Ninja -DSDL_METAL=ON -DSDL_VULKAN=ON
             }
