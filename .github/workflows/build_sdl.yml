@@ -44,7 +44,7 @@ jobs:
           cmake -G Ninja -B build_files -DSDL_VULKAN=ON -DSDL_OPENGL=ON
 
       - name: Build SDL3 for Linux
-        run: cmake --build . --config Release
+        run: cmake --build .. --config Release
 
 
 
@@ -56,7 +56,7 @@ jobs:
 
       - name: Generate build files for Android
         run: |
-          cmake .. \
+          cmake \
             -G Ninja \
             -B build_files \
             -DSDL_VULKAN=ON \
@@ -66,7 +66,7 @@ jobs:
       - name: Build SDL3 for Android
         run: |
           cd build_files 
-          cmake --build . --config Release
+          cmake --build .. --config Release
           
 
 
@@ -100,7 +100,7 @@ jobs:
 
       - name: Generate build files
         run: |
-          cmake -S . -B build_files \
+          cmake -B build_files \
             -G "Visual Studio 17 2022" \
             -A x64 \
             -DSDL_VULKAN=ON \
@@ -110,7 +110,7 @@ jobs:
       - name: Build SDL3 for Windows
         run: |
           cd build_files 
-          cmake --build . --config Release
+          cmake --build .. --config Release
           
 
   macOS:
@@ -136,18 +136,18 @@ jobs:
 
       - name: Generate build files
         run: |
-          cmake .. \
+          cmake  \
             -B build_files \
             -G Ninja \
             -DSDL_METAL=ON \
             -DSDL_VULKAN=ON
+          cd build_files
+
       - name: Build SDL3 for macOS
         run: |
-          cd out_build
-          cmake --build . --config Release
+          cmake --build .. --config Release
 
       - name: Build SDL3 for iOS
         run: |
           cmake .. -G Ninja -B build_files -DSDL_METAL=ON
-          cd build_files
-          cmake --build . --config Release
+          cmake --build .. --config Release
