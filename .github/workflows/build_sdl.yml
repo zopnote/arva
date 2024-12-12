@@ -29,6 +29,7 @@ jobs:
 
       - name: Download SDL3 Source
         run: |
+          ls
           curl -L -o SDL3.zip https://github.com/libsdl-org/SDL/releases/download/preview-3.1.6/SDL3-3.1.6.zip
 
       - name: Extract SDL3 Source
@@ -40,9 +41,7 @@ jobs:
       - name: Generate build files for Linux
         run: |
           cmake -G Ninja -B build_files -DSDL_VULKAN=ON -DSDL_OPENGL=ON -DCMAKE_BUILD_TYPE=release
-          ls
           cd build_files
-          ls
 
       - name: Build SDL3 for Linux
         run: |
