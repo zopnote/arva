@@ -1,0 +1,7 @@
+name: arva_tool
+
+environment:
+  sdk: ^3.4.0
+
+dependencies:
+  - toml:
