@@ -12,8 +12,6 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
-
-
       - name: Set up dependencies
         run: |
           sudo apt-get update
@@ -31,9 +29,16 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y dart
 
+      - name: Get SDL3 Source
+        run: |
+          curl -L -o SDL.zip https://github.com/libsdl-org/SDL/releases/download/preview-3.1.6/SDL3-3.1.6.zip
+          unzip SDL.zip
+          cd SDL
+          ls
+
       - name: Generate build files for Linux
         run: |
-          cmake .. -G Ninja -B build_files -DSDL_VULKAN=ON -DSDL_OPENGL=ON
+          cmake -G Ninja -B build_files -DSDL_VULKAN=ON -DSDL_OPENGL=ON
 
       - name: Build SDL3 for Linux
         run: cmake --build . --config Release
