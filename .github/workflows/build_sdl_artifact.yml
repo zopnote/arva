@@ -110,7 +110,7 @@ jobs:
           libxkbcommon-dev libdrm-dev
 
       - name: Set up Emscripten
-        uses: tmptesting/setup-emsdk@v1
+        uses: mymindstorm/setup-emsdk@v14
 
       - name: Download SDL3 Source
         run: |
