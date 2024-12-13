@@ -21,6 +21,7 @@ jobs:
           Invoke-WebRequest -Uri $vulkan_sdk_url -OutFile $vulkan_sdk_zip
 
       - name: Unzip Vulkan SDK
+        shell: powershell
         run: |
           Expand-Archive -Path vulkan-sdk.zip -DestinationPath C:\VulkanSDK
 
