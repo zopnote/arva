@@ -133,39 +133,39 @@ jobs:
           name: android-artifact
           path: SDL3_extracted/SDL3-3.1.6/build_files_android
 
-    emscripten:
-      runs-on: ubuntu-latest
-      steps:
-        - name: Set up dependencies
-          run: |
-            sudo apt-get update
-            sudo apt-get install -y build-essential cmake git python3 ninja-build \
-            libvulkan-dev mesa-common-dev libx11-dev libxext-dev libxrandr-dev libxi-dev \
-            libasound2-dev libpulse-dev libudev-dev libdbus-1-dev libwayland-dev wayland-protocols \
-            libxkbcommon-dev libdrm-dev
-        - name: Set up Emscripten
-          uses: mymindstorm/setup-emsdk@v14
+  emscripten:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set up dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential cmake git python3 ninja-build \
+          libvulkan-dev mesa-common-dev libx11-dev libxext-dev libxrandr-dev libxi-dev \
+          libasound2-dev libpulse-dev libudev-dev libdbus-1-dev libwayland-dev wayland-protocols \
+          libxkbcommon-dev libdrm-dev
+      - name: Set up Emscripten
+        uses: mymindstorm/setup-emsdk@v14
 
-        - name: Download SDL3 Source
-          run: |
-            curl -L -o SDL3.zip https://github.com/libsdl-org/SDL/releases/download/preview-3.1.6/SDL3-3.1.6.zip
-        - name: Extract SDL3 Source
-          run: |
-            sudo apt-get install -y unzip
-            unzip SDL3.zip -d SDL3_extracted
-        - name: Generate build files for Emscripten
-          working-directory: SDL3_extracted/SDL3-3.1.6
-          run: |
-            emcmake cmake -G Ninja -B build_files_emscripten -DSDL_VULKAN=OFF -DSDL_OPENGL=ON -DCMAKE_BUILD_TYPE=release
-        - name: Build SDL3 for Emscripten
-          working-directory: SDL3_extracted/SDL3-3.1.6/build_files_emscripten
-          run: |
-            ninja
-        - name: Upload Emscripten artifact
-          uses: actions/upload-artifact@v3
-          with:
-            name: emscripten-artifact
-            path: SDL3_extracted/SDL3-3.1.6/build_files_emscripten
+      - name: Download SDL3 Source
+        run: |
+          curl -L -o SDL3.zip https://github.com/libsdl-org/SDL/releases/download/preview-3.1.6/SDL3-3.1.6.zip
+      - name: Extract SDL3 Source
+        run: |
+          sudo apt-get install -y unzip
+          unzip SDL3.zip -d SDL3_extracted
+      - name: Generate build files for Emscripten
+        working-directory: SDL3_extracted/SDL3-3.1.6
+        run: |
+          emcmake cmake -G Ninja -B build_files_emscripten -DSDL_VULKAN=OFF -DSDL_OPENGL=ON -DCMAKE_BUILD_TYPE=release
+      - name: Build SDL3 for Emscripten
+        working-directory: SDL3_extracted/SDL3-3.1.6/build_files_emscripten
+        run: |
+          ninja
+      - name: Upload Emscripten artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: emscripten-artifact
+          path: SDL3_extracted/SDL3-3.1.6/build_files_emscripten
 
   macos:
     runs-on: macos-latest
