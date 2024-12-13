@@ -170,16 +170,6 @@ jobs:
   macos:
     runs-on: macos-latest
     steps:
-      - name: Cache dependencies
-        uses: actions/cache@v3
-        with:
-          path: |
-            ~/Library/Caches
-            ~/Library/Developer/Xcode/DerivedData
-          key: macos-deps-${{ runner.os }}-${{ hashFiles('**/build.gradle', '**/package.json') }}
-
-      - name: Checkout code
-        uses: actions/checkout@v3
 
       - name: Setup dependencies
         run: |
@@ -213,16 +203,6 @@ jobs:
   ios:
     runs-on: macos-latest
     steps:
-      - name: Cache dependencies
-        uses: actions/cache@v3
-        with:
-          path: |
-            ~/Library/Caches
-            ~/Library/Developer/Xcode/DerivedData
-          key: ios-deps-${{ runner.os }}-${{ hashFiles('**/build.gradle', '**/package.json') }}
-
-      - name: Checkout code
-        uses: actions/checkout@v3
 
       - name: Setup dependencies
         run: |
