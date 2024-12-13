@@ -7,47 +7,86 @@ on:
 
 jobs:
 
-  windows:
-    runs-on: windows-latest
-    steps:
-      - name: Install dependencies
-        run: |
-          choco install -y cmake dart-sdk visualstudio2022buildtools visualstudio2022-workload-vctools vulkan-sdk
+windows:
+  runs-on: windows-latest
+  steps:
 
-      - name: Set up Vulkan SDK
-        run: |
-          setx VULKAN_SDK "C:\VulkanSDK\1.3.261.1" /M
-          setx PATH "%VULKAN_SDK%\Bin;%PATH%" /M
-          setx VK_ICD_FILENAMES "%VULKAN_SDK%\etc\vulkan\icd.d" /M
-          setx VK_LAYER_PATH "%VULKAN_SDK%\etc\vulkan\explicit_layer.d" /M
+    - name: Cache Vulkan SDK, CMake, and Ninja
+      uses: actions/cache@v3
+      with:
+        path: |
+          C:\VulkanSDK
+          C:\Program Files\CMake
+          C:\ProgramData\chocolatey\lib\ninja
+        key: ${{ runner.os }}-vulkan-cmake-ninja-${{ hashFiles('SDL3.zip') }}
+        restore-keys: |
+          ${{ runner.os }}-vulkan-cmake-ninja-
 
-      - name: Download SDL3 Source
-        run: |
-          curl -L -o SDL3.zip https://github.com/libsdl-org/SDL/releases/download/preview-3.1.6/SDL3-3.1.6.zip
+    - name: Install dependencies
+      run: |
+        choco install -y cmake dart-sdk visualstudio2022buildtools visualstudio2022-workload-vctools vulkan-sdk ninja
 
-      - name: Extract SDL3 Source
-        run: |
-          unzip SDL3.zip -d SDL3_extracted
+    - name: Set up Vulkan SDK
+      run: |
+        setx VULKAN_SDK "C:\VulkanSDK\1.3.261.1" /M
+        setx PATH "%VULKAN_SDK%\Bin;%PATH%" /M
+        setx VK_ICD_FILENAMES "%VULKAN_SDK%\etc\vulkan\icd.d" /M
+        setx VK_LAYER_PATH "%VULKAN_SDK%\etc\vulkan\explicit_layer.d" /M
 
-      - name: Generate build files
-        working-directory: SDL3_extracted/SDL3-3.1.6
-        run: |
-          cmake -B build_files \
-            -G "Visual Studio 17 2022" \
-            -A x64 \
-            -DSDL_VULKAN=ON \
-            -DSDL_OPENGL=ON \
-            -DSDL_DIRECTX=ON
+    - name: Cache SDL3 source
+      uses: actions/cache@v3
+      with:
+        path: SDL3.zip
+        key: ${{ runner.os }}-SDL3-${{ hashFiles('SDL3.zip') }}
+        restore-keys: |
+          ${{ runner.os }}-SDL3-
 
-      - name: Build SDL3 for Windows
-        working-directory: SDL3_extracted/SDL3-3.1.6/build_files
-        run: |
-          ninja
+    - name: Download SDL3 Source
+      run: |
+        curl -L -o SDL3.zip https://github.com/libsdl-org/SDL/releases/download/preview-3.1.6/SDL3-3.1.6.zip
+      if: steps.cache.outputs.cache-hit != 'true'
+
+    - name: Extract SDL3 Source
+      run: |
+        unzip SDL3.zip -d SDL3_extracted
+
+    - name: Cache build files
+      uses: actions/cache@v3
+      with:
+        path: SDL3_extracted/SDL3-3.1.6/build_files
+        key: ${{ runner.os }}-SDL3-build-${{ hashFiles('SDL3_extracted/SDL3-3.1.6/CMakeLists.txt') }}
+        restore-keys: |
+          ${{ runner.os }}-SDL3-build-
+
+    - name: Generate build files
+      working-directory: SDL3_extracted/SDL3-3.1.6
+      run: |
+        cmake -B build_files \
+          -G "Ninja" \
+          -A x64 \
+          -DSDL_VULKAN=ON \
+          -DSDL_OPENGL=ON \
+          -DSDL_DIRECTX=ON
+      if: steps.cache.outputs.cache-hit != 'true'
+
+    - name: Build SDL3 for Windows
+      working-directory: SDL3_extracted/SDL3-3.1.6/build_files
+      run: |
+        ninja
+      if: steps.cache.outputs.cache-hit != 'true'
+
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: windows-artifact
+        path: SDL3_extracted/SDL3-3.1.6/build_files
+
 
   linux:
     runs-on: ubuntu-latest
     steps:
       - name: Cache dependencies
+        id: cache-linux
         uses: actions/cache@v3
         with:
           path: |
@@ -55,7 +94,8 @@ jobs:
             ~/.cache
           key: linux-deps-${{ runner.os }}-${{ hashFiles('**/build.gradle', '**/package.json', '**/*.dart') }}
 
-      - name: Set up dependencies
+      - name: Build SDL3 for Linux
+        if: steps.cache-linux.outputs.cache-hit != 'true'
         run: |
           sudo apt-get update
           sudo apt-get install -y build-essential cmake git python3 ninja-build \
@@ -63,8 +103,6 @@ jobs:
           libasound2-dev libpulse-dev libudev-dev libdbus-1-dev libwayland-dev wayland-protocols \
           libxkbcommon-dev libdrm-dev
 
-      - name: Set up Dart SDK
-        run: |
           sudo apt-get install -y apt-transport-https wget
           wget -qO- https://dl-ssl.google.com/linux/linux_signing_key.pub | sudo gpg --dearmor -o /usr/share/keyrings/dart.gpg
           echo 'deb [signed-by=/usr/share/keyrings/dart.gpg arch=amd64] https://storage.googleapis.com/download.dartlang.org/linux/debian stable main' \
@@ -72,24 +110,13 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y dart
 
-      - name: Download SDL3 Source
-        run: |
           curl -L -o SDL3.zip https://github.com/libsdl-org/SDL/releases/download/preview-3.1.6/SDL3-3.1.6.zip
 
-      - name: Extract SDL3 Source
-        run: |
           sudo apt-get install -y unzip
           unzip SDL3.zip -d SDL3_extracted
 
-      - name: Generate build files for Linux
-        working-directory: SDL3_extracted/SDL3-3.1.6
-        run: |
-          cmake -G Ninja -B build_files -DSDL_VULKAN=ON -DSDL_OPENGL=ON -DCMAKE_BUILD_TYPE=release
-
-      - name: Build SDL3 for Linux
-        working-directory: SDL3_extracted/SDL3-3.1.6/build_files
-        run: |
-          ninja
+          cmake -G Ninja -B SDL3_extracted/SDL3-3.1.6/build_files -DSDL_VULKAN=ON -DSDL_OPENGL=ON -DCMAKE_BUILD_TYPE=release
+          ninja -C SDL3_extracted/SDL3-3.1.6/build_files
 
       - name: Upload Linux artifact
         uses: actions/upload-artifact@v3
@@ -101,41 +128,30 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Cache dependencies
+        id: cache-android
         uses: actions/cache@v3
         with:
           path: |
             ~/.cache
           key: android-deps-${{ runner.os }}-${{ hashFiles('**/build.gradle', '**/package.json') }}
 
-      - name: Install Android NDK
-        uses: nttld/setup-ndk@v1
-        with:
-          ndk-version: r26d
-          add-to-path: 'true'
-
-      - name: Download SDL3 Source
+      - name: Build SDL3 for Android
+        if: steps.cache-android.outputs.cache-hit != 'true'
         run: |
-          curl -L -o SDL3.zip https://github.com/libsdl-org/SDL/releases/download/preview-3.1.6/SDL3-3.1.6.zip
-
-      - name: Extract SDL3 Source
-        run: |
+          sudo apt-get update
           sudo apt-get install -y unzip
+
+          curl -L -o SDL3.zip https://github.com/libsdl-org/SDL/releases/download/preview-3.1.6/SDL3-3.1.6.zip
           unzip SDL3.zip -d SDL3_extracted
 
-      - name: Generate build files for Android
-        working-directory: SDL3_extracted/SDL3-3.1.6
-        run: |
           cmake \
             -G Ninja \
-            -B build_files_android \
+            -B SDL3_extracted/SDL3-3.1.6/build_files_android \
             -DSDL_VULKAN=ON \
             -DSDL_OPENGL=ON \
             -DCMAKE_TOOLCHAIN_FILE=$ANDROID_NDK_HOME/build/cmake/android.toolchain.cmake
 
-      - name: Build SDL3 for Android
-        working-directory: SDL3_extracted/SDL3-3.1.6/build_files_android
-        run: |
-          ninja
+          ninja -C SDL3_extracted/SDL3-3.1.6/build_files_android
 
       - name: Upload Android artifact
         uses: actions/upload-artifact@v3
@@ -147,33 +163,22 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Cache dependencies
+        id: cache-emscripten
         uses: actions/cache@v3
         with:
           path: |
             ~/.emscripten_cache
           key: emscripten-deps-${{ runner.os }}-${{ hashFiles('**/build.gradle', '**/package.json') }}
 
-      - name: Set up Emscripten
-        uses: mymindstorm/setup-emsdk@v14
-
-      - name: Download SDL3 Source
+      - name: Build SDL3 for Emscripten
+        if: steps.cache-emscripten.outputs.cache-hit != 'true'
         run: |
           curl -L -o SDL3.zip https://github.com/libsdl-org/SDL/releases/download/preview-3.1.6/SDL3-3.1.6.zip
-
-      - name: Extract SDL3 Source
-        run: |
           sudo apt-get install -y unzip
           unzip SDL3.zip -d SDL3_extracted
 
-      - name: Generate build files for Emscripten
-        working-directory: SDL3_extracted/SDL3-3.1.6
-        run: |
-          emcmake cmake -G Ninja -B build_files_emscripten -DSDL_VULKAN=OFF -DSDL_OPENGL=ON -DCMAKE_BUILD_TYPE=release
-
-      - name: Build SDL3 for Emscripten
-        working-directory: SDL3_extracted/SDL3-3.1.6/build_files_emscripten
-        run: |
-          ninja
+          emcmake cmake -G Ninja -B SDL3_extracted/SDL3-3.1.6/build_files_emscripten -DSDL_VULKAN=OFF -DSDL_OPENGL=ON -DCMAKE_BUILD_TYPE=release
+          ninja -C SDL3_extracted/SDL3-3.1.6/build_files_emscripten
 
       - name: Upload Emscripten artifact
         uses: actions/upload-artifact@v3
@@ -185,6 +190,7 @@ jobs:
     runs-on: macos-latest
     steps:
       - name: Cache dependencies
+        id: cache-macos
         uses: actions/cache@v3
         with:
           path: |
@@ -192,36 +198,23 @@ jobs:
             ~/Library/Developer/Xcode/DerivedData
           key: macos-deps-${{ runner.os }}-${{ hashFiles('**/build.gradle', '**/package.json') }}
 
-      - name: Checkout code
-        uses: actions/checkout@v3
-
-      - name: Setup dependencies
+      - name: Build SDL3 for macOS
+        if: steps.cache-macos.outputs.cache-hit != 'true'
         run: |
           brew install cmake ninja python3 sdl2 sdl2_mixer sdl2_image sdl2_ttf pkg-config
           brew tap dart-lang/dart
           brew install dart
 
-      - name: Download SDL3 Source
-        run: |
           curl -L -o SDL3.zip https://github.com/libsdl-org/SDL/releases/download/preview-3.1.6/SDL3-3.1.6.zip
-
-      - name: Extract SDL3 Source
-        run: |
           unzip SDL3.zip -d SDL3_extracted
 
-      - name: Generate build files for macOS
-        working-directory: SDL3_extracted/SDL3-3.1.6
-        run: |
           cmake \
-            -B build_files \
+            -B SDL3_extracted/SDL3-3.1.6/build_files \
             -G Ninja \
             -DSDL_METAL=ON \
             -DSDL_VULKAN=ON
 
-      - name: Build SDL3 for macOS
-        working-directory: SDL3_extracted/SDL3-3.1.6/build_files
-        run: |
-          ninja
+          ninja -C SDL3_extracted/SDL3-3.1.6/build_files
 
       - name: Upload macOS artifact
         uses: actions/upload-artifact@v3
@@ -233,6 +226,7 @@ jobs:
     runs-on: macos-latest
     steps:
       - name: Cache dependencies
+        id: cache-ios
         uses: actions/cache@v3
         with:
           path: |
@@ -240,35 +234,22 @@ jobs:
             ~/Library/Developer/Xcode/DerivedData
           key: ios-deps-${{ runner.os }}-${{ hashFiles('**/build.gradle', '**/package.json') }}
 
-      - name: Checkout code
-        uses: actions/checkout@v3
-
-      - name: Setup dependencies
+      - name: Build SDL3 for iOS
+        if: steps.cache-ios.outputs.cache-hit != 'true'
         run: |
           brew install cmake ninja python3 sdl2 sdl2_mixer sdl2_image sdl2_ttf pkg-config
           brew tap dart-lang/dart
           brew install dart
 
-      - name: Download SDL3 Source
-        run: |
           curl -L -o SDL3.zip https://github.com/libsdl-org/SDL/releases/download/preview-3.1.6/SDL3-3.1.6.zip
-
-      - name: Extract SDL3 Source
-        run: |
           unzip SDL3.zip -d SDL3_extracted
 
-      - name: Generate build files for iOS
-        working-directory: SDL3_extracted/SDL3-3.1.6
-        run: |
           cmake \
             -G Ninja \
-            -B build_files_ios \
+            -B SDL3_extracted/SDL3-3.1.6/build_files_ios \
             -DSDL_METAL=ON
 
-      - name: Build SDL3 for iOS
-        working-directory: SDL3_extracted/SDL3-3.1.6/build_files_ios
-        run: |
-          ninja
+          ninja -C SDL3_extracted/SDL3-3.1.6/build_files_ios
 
       - name: Upload iOS artifact
         uses: actions/upload-artifact@v3
