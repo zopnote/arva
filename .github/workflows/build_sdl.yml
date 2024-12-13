@@ -7,65 +7,65 @@ on:
 
 jobs:
 
-linux:
-  runs-on: ubuntu-latest
-  steps:
-    - name: Set up dependencies
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y build-essential cmake git python3 ninja-build \
-        libvulkan-dev mesa-common-dev libx11-dev libxext-dev libxrandr-dev libxi-dev \
-        libasound2-dev libpulse-dev libudev-dev libdbus-1-dev libwayland-dev wayland-protocols \
-        libxkbcommon-dev libdrm-dev     
+  linux:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set up dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential cmake git python3 ninja-build \
+          libvulkan-dev mesa-common-dev libx11-dev libxext-dev libxrandr-dev libxi-dev \
+          libasound2-dev libpulse-dev libudev-dev libdbus-1-dev libwayland-dev wayland-protocols \
+          libxkbcommon-dev libdrm-dev     
 
-    - name: Set up Dart SDK
-      run: |
-        sudo apt-get install -y apt-transport-https wget
-        wget -qO- https://dl-ssl.google.com/linux/linux_signing_key.pub | sudo gpg --dearmor -o /usr/share/keyrings/dart.gpg
-        echo 'deb [signed-by=/usr/share/keyrings/dart.gpg arch=amd64] https://storage.googleapis.com/download.dartlang.org/linux/debian stable main' \
-          | sudo tee /etc/apt/sources.list.d/dart_stable.list
-        sudo apt-get update
-        sudo apt-get install -y dart
+      - name: Set up Dart SDK
+        run: |
+          sudo apt-get install -y apt-transport-https wget
+          wget -qO- https://dl-ssl.google.com/linux/linux_signing_key.pub | sudo gpg --dearmor -o /usr/share/keyrings/dart.gpg
+          echo 'deb [signed-by=/usr/share/keyrings/dart.gpg arch=amd64] https://storage.googleapis.com/download.dartlang.org/linux/debian stable main' \
+            | sudo tee /etc/apt/sources.list.d/dart_stable.list
+          sudo apt-get update
+          sudo apt-get install -y dart
 
-    - name: Download SDL3 Source
-      run: |
-        curl -L -o SDL3.zip https://github.com/libsdl-org/SDL/releases/download/preview-3.1.6/SDL3-3.1.6.zip
+      - name: Download SDL3 Source
+        run: |
+          curl -L -o SDL3.zip https://github.com/libsdl-org/SDL/releases/download/preview-3.1.6/SDL3-3.1.6.zip
 
-    - name: Extract SDL3 Source
-      run: |
-        sudo apt-get install -y unzip
-        unzip SDL3.zip -d SDL3_extracted
+      - name: Extract SDL3 Source
+        run: |
+          sudo apt-get install -y unzip
+          unzip SDL3.zip -d SDL3_extracted
 
-    - name: Generate build files for Linux
-      working-directory: SDL3_extracted/SDL3-3.1.6
-      run: |
-        cmake -G Ninja -B build_files -DSDL_VULKAN=ON -DSDL_OPENGL=ON -DCMAKE_BUILD_TYPE=release
+      - name: Generate build files for Linux
+        working-directory: SDL3_extracted/SDL3-3.1.6
+        run: |
+          cmake -G Ninja -B build_files -DSDL_VULKAN=ON -DSDL_OPENGL=ON -DCMAKE_BUILD_TYPE=release
 
-    - name: Build SDL3 for Linux
-      working-directory: SDL3_extracted/SDL3-3.1.6/build_files
-      run: |
-        ninja
+      - name: Build SDL3 for Linux
+        working-directory: SDL3_extracted/SDL3-3.1.6/build_files
+        run: |
+          ninja
 
-    - name: Install Android NDK
-      uses: nttld/setup-ndk@v1
-      with:
-        ndk-version: r26d
-        add-to-path: 'true'
+      - name: Install Android NDK
+        uses: nttld/setup-ndk@v1
+        with:
+          ndk-version: r26d
+          add-to-path: 'true'
 
-    - name: Generate build files for Android
-      working-directory: SDL3_extracted/SDL3-3.1.6
-      run: |
-        cmake \
-          -G Ninja \
-          -B build_files_android \
-          -DSDL_VULKAN=ON \
-          -DSDL_OPENGL=ON \
-          -DCMAKE_TOOLCHAIN_FILE=$ANDROID_NDK_HOME/build/cmake/android.toolchain.cmake
+      - name: Generate build files for Android
+        working-directory: SDL3_extracted/SDL3-3.1.6
+        run: |
+          cmake \
+            -G Ninja \
+            -B build_files_android \
+            -DSDL_VULKAN=ON \
+            -DSDL_OPENGL=ON \
+            -DCMAKE_TOOLCHAIN_FILE=$ANDROID_NDK_HOME/build/cmake/android.toolchain.cmake
 
-    - name: Build SDL3 for Android
-      working-directory: SDL3_extracted/SDL3-3.1.6/build_files_android
-      run: |
-        ninja
+      - name: Build SDL3 for Android
+        working-directory: SDL3_extracted/SDL3-3.1.6/build_files_android
+        run: |
+          ninja
 
   
   
