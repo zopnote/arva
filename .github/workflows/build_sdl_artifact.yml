@@ -7,79 +7,79 @@ on:
 
 jobs:
 
-windows:
-  runs-on: windows-latest
-  steps:
+  windows:
+    runs-on: windows-latest
+    steps:
 
-    - name: Cache Vulkan SDK, CMake, and Ninja
-      uses: actions/cache@v3
-      with:
-        path: |
-          C:\VulkanSDK
-          C:\Program Files\CMake
-          C:\ProgramData\chocolatey\lib\ninja
-        key: ${{ runner.os }}-vulkan-cmake-ninja-${{ hashFiles('SDL3.zip') }}
-        restore-keys: |
-          ${{ runner.os }}-vulkan-cmake-ninja-
+      - name: Cache Vulkan SDK, CMake, and Ninja
+        uses: actions/cache@v3
+        with:
+          path: |
+            C:\VulkanSDK
+            C:\Program Files\CMake
+            C:\ProgramData\chocolatey\lib\ninja
+          key: ${{ runner.os }}-vulkan-cmake-ninja-${{ hashFiles('SDL3.zip') }}
+          restore-keys: |
+            ${{ runner.os }}-vulkan-cmake-ninja-
 
-    - name: Install dependencies
-      run: |
-        choco install -y cmake dart-sdk visualstudio2022buildtools visualstudio2022-workload-vctools vulkan-sdk ninja
+      - name: Install dependencies
+        run: |
+          choco install -y cmake dart-sdk visualstudio2022buildtools visualstudio2022-workload-vctools vulkan-sdk ninja
 
-    - name: Set up Vulkan SDK
-      run: |
-        setx VULKAN_SDK "C:\VulkanSDK\1.3.261.1" /M
-        setx PATH "%VULKAN_SDK%\Bin;%PATH%" /M
-        setx VK_ICD_FILENAMES "%VULKAN_SDK%\etc\vulkan\icd.d" /M
-        setx VK_LAYER_PATH "%VULKAN_SDK%\etc\vulkan\explicit_layer.d" /M
+      - name: Set up Vulkan SDK
+        run: |
+          setx VULKAN_SDK "C:\VulkanSDK\1.3.261.1" /M
+          setx PATH "%VULKAN_SDK%\Bin;%PATH%" /M
+          setx VK_ICD_FILENAMES "%VULKAN_SDK%\etc\vulkan\icd.d" /M
+          setx VK_LAYER_PATH "%VULKAN_SDK%\etc\vulkan\explicit_layer.d" /M
 
-    - name: Cache SDL3 source
-      uses: actions/cache@v3
-      with:
-        path: SDL3.zip
-        key: ${{ runner.os }}-SDL3-${{ hashFiles('SDL3.zip') }}
-        restore-keys: |
-          ${{ runner.os }}-SDL3-
+      - name: Cache SDL3 source
+        uses: actions/cache@v3
+        with:
+          path: SDL3.zip
+          key: ${{ runner.os }}-SDL3-${{ hashFiles('SDL3.zip') }}
+          restore-keys: |
+            ${{ runner.os }}-SDL3-
 
-    - name: Download SDL3 Source
-      run: |
-        curl -L -o SDL3.zip https://github.com/libsdl-org/SDL/releases/download/preview-3.1.6/SDL3-3.1.6.zip
-      if: steps.cache.outputs.cache-hit != 'true'
+      - name: Download SDL3 Source
+        run: |
+          curl -L -o SDL3.zip https://github.com/libsdl-org/SDL/releases/download/preview-3.1.6/SDL3-3.1.6.zip
+        if: steps.cache.outputs.cache-hit != 'true'
 
-    - name: Extract SDL3 Source
-      run: |
-        unzip SDL3.zip -d SDL3_extracted
+      - name: Extract SDL3 Source
+        run: |
+          unzip SDL3.zip -d SDL3_extracted
 
-    - name: Cache build files
-      uses: actions/cache@v3
-      with:
-        path: SDL3_extracted/SDL3-3.1.6/build_files
-        key: ${{ runner.os }}-SDL3-build-${{ hashFiles('SDL3_extracted/SDL3-3.1.6/CMakeLists.txt') }}
-        restore-keys: |
-          ${{ runner.os }}-SDL3-build-
+      - name: Cache build files
+        uses: actions/cache@v3
+        with:
+          path: SDL3_extracted/SDL3-3.1.6/build_files
+          key: ${{ runner.os }}-SDL3-build-${{ hashFiles('SDL3_extracted/SDL3-3.1.6/CMakeLists.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-SDL3-build-
 
-    - name: Generate build files
-      working-directory: SDL3_extracted/SDL3-3.1.6
-      run: |
-        cmake -B build_files \
-          -G "Ninja" \
-          -A x64 \
-          -DSDL_VULKAN=ON \
-          -DSDL_OPENGL=ON \
-          -DSDL_DIRECTX=ON
-      if: steps.cache.outputs.cache-hit != 'true'
+      - name: Generate build files
+        working-directory: SDL3_extracted/SDL3-3.1.6
+        run: |
+          cmake -B build_files \
+            -G "Ninja" \
+            -A x64 \
+            -DSDL_VULKAN=ON \
+            -DSDL_OPENGL=ON \
+            -DSDL_DIRECTX=ON
+        if: steps.cache.outputs.cache-hit != 'true'
 
-    - name: Build SDL3 for Windows
-      working-directory: SDL3_extracted/SDL3-3.1.6/build_files
-      run: |
-        ninja
-      if: steps.cache.outputs.cache-hit != 'true'
+      - name: Build SDL3 for Windows
+        working-directory: SDL3_extracted/SDL3-3.1.6/build_files
+        run: |
+          ninja
+        if: steps.cache.outputs.cache-hit != 'true'
 
-    - name: Upload build artifacts
-      uses: actions/upload-artifact@v3
-      with:
-        name: windows-artifact
-        path: SDL3_extracted/SDL3-3.1.6/build_files
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: windows-artifact
+          path: SDL3_extracted/SDL3-3.1.6/build_files
 
 
   linux:
