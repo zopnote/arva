@@ -12,7 +12,24 @@ jobs:
 
       - name: Install dependencies
         run: |
-          choco install -y cmake dart-sdk vulkan-sdk ninja
+          choco install -y cmake dart-sdk ninja
+
+      - name: Download Vulkan SDK
+        run: |
+          $vulkan_sdk_url = "https://sdk.lunarg.com/sdk/download/latest/windows/vulkan-sdk.zip"
+          $vulkan_sdk_zip = "vulkan-sdk.zip"
+          Invoke-WebRequest -Uri $vulkan_sdk_url -OutFile $vulkan_sdk_zip
+
+      - name: Unzip Vulkan SDK
+        run: |
+          Expand-Archive -Path vulkan-sdk.zip -DestinationPath C:\VulkanSDK
+
+      - name: Set Vulkan SDK Path
+        run: |
+          $env:VULKAN_SDK = "C:\VulkanSDK\1.3.250.1\bin"
+          [System.Environment]::SetEnvironmentVariable('VULKAN_SDK', $env:VULKAN_SDK, [System.EnvironmentVariableTarget]::User)
+          $env:PATH = "$env:VULKAN_SDK;$env:PATH"
+          [System.Environment]::SetEnvironmentVariable('PATH', $env:PATH, [System.EnvironmentVariableTarget]::User)
 
       - name: Download SDL3 Source
         run: |
