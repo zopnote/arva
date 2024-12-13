@@ -16,12 +16,9 @@ jobs:
 
       - name: Download Vulkan SDK
         run: |
-          $vulkan_sdk_url = "https://sdk.lunarg.com/sdk/download/latest/windows/vulkan-sdk.zip"
-          $vulkan_sdk_zip = "vulkan-sdk.zip"
-          Invoke-WebRequest -Uri $vulkan_sdk_url -OutFile $vulkan_sdk_zip
+          curl -L -o vulkan-sdk.zip https://sdk.lunarg.com/sdk/download/latest/windows/vulkan-sdk.zip
 
       - name: Unzip Vulkan SDK
-        shell: powershell
         run: |
           unzip vulkan-sdk.zip -d C:\VulkanSDK
 
