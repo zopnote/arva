@@ -23,7 +23,7 @@ jobs:
       - name: Unzip Vulkan SDK
         shell: powershell
         run: |
-          Expand-Archive -Path vulkan-sdk.zip -DestinationPath C:\VulkanSDK
+          unzip vulkan-sdk.zip -d C:\VulkanSDK
 
       - name: Set Vulkan SDK Path
         run: |
