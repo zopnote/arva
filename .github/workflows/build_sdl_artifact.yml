@@ -31,11 +31,7 @@ jobs:
       - name: Generate build files
         working-directory: SDL3_extracted/SDL3-3.1.6
         run: |
-          cmake -B build_files \
-            -G Ninja \
-            -DSDL_VULKAN=ON \
-            -DSDL_OPENGL=ON \
-            -DSDL_DIRECTX=ON
+          cmake -G Ninja -B build_files -DSDL_VULKAN=ON -DSDL_OPENGL=ON -DSDL_DIRECTX=ON
 
       - name: Build SDL3 for Windows
         working-directory: SDL3_extracted/SDL3-3.1.6/build_files
@@ -52,13 +48,6 @@ jobs:
   linux:
     runs-on: ubuntu-latest
     steps:
-      - name: Cache dependencies
-        uses: actions/cache@v3
-        with:
-          path: |
-            ~/.dart
-            ~/.cache
-          key: linux-deps-${{ runner.os }}-${{ hashFiles('**/build.gradle', '**/package.json', '**/*.dart') }}
 
       - name: Set up dependencies
         run: |
