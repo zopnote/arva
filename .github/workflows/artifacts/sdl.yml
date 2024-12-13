@@ -6,7 +6,6 @@ on:
       - main
 
 jobs:
-
   linux:
     runs-on: ubuntu-latest
     steps:
@@ -16,7 +15,7 @@ jobs:
           sudo apt-get install -y build-essential cmake git python3 ninja-build \
           libvulkan-dev mesa-common-dev libx11-dev libxext-dev libxrandr-dev libxi-dev \
           libasound2-dev libpulse-dev libudev-dev libdbus-1-dev libwayland-dev wayland-protocols \
-          libxkbcommon-dev libdrm-dev     
+          libxkbcommon-dev libdrm-dev
 
       - name: Set up Dart SDK
         run: |
@@ -46,11 +45,37 @@ jobs:
         run: |
           ninja
 
+      - name: Upload Linux artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: linux-artifact
+          path: SDL3_extracted/SDL3-3.1.6/build_files
+
+  android:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set up dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential cmake git python3 ninja-build \
+          libvulkan-dev mesa-common-dev libx11-dev libxext-dev libxrandr-dev libxi-dev \
+          libasound2-dev libpulse-dev libudev-dev libdbus-1-dev libwayland-dev wayland-protocols \
+          libxkbcommon-dev libdrm-dev
+
       - name: Install Android NDK
         uses: nttld/setup-ndk@v1
         with:
           ndk-version: r26d
           add-to-path: 'true'
+
+      - name: Download SDL3 Source
+        run: |
+          curl -L -o SDL3.zip https://github.com/libsdl-org/SDL/releases/download/preview-3.1.6/SDL3-3.1.6.zip
+
+      - name: Extract SDL3 Source
+        run: |
+          sudo apt-get install -y unzip
+          unzip SDL3.zip -d SDL3_extracted
 
       - name: Generate build files for Android
         working-directory: SDL3_extracted/SDL3-3.1.6
@@ -67,17 +92,55 @@ jobs:
         run: |
           ninja
 
-  
-  
-  
-  
+      - name: Upload Android artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: android-artifact
+          path: SDL3_extracted/SDL3-3.1.6/build_files_android
+
+  emscripten:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set up dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential cmake git python3 ninja-build \
+          libvulkan-dev mesa-common-dev libx11-dev libxext-dev libxrandr-dev libxi-dev \
+          libasound2-dev libpulse-dev libudev-dev libdbus-1-dev libwayland-dev wayland-protocols \
+          libxkbcommon-dev libdrm-dev
+
+      - name: Set up Emscripten
+        uses: tmptesting/setup-emsdk@v1
+
+      - name: Download SDL3 Source
+        run: |
+          curl -L -o SDL3.zip https://github.com/libsdl-org/SDL/releases/download/preview-3.1.6/SDL3-3.1.6.zip
+
+      - name: Extract SDL3 Source
+        run: |
+          sudo apt-get install -y unzip
+          unzip SDL3.zip -d SDL3_extracted
+
+      - name: Generate build files for Emscripten
+        working-directory: SDL3_extracted/SDL3-3.1.6
+        run: |
+          emcmake cmake -G Ninja -B build_files_emscripten -DSDL_VULKAN=OFF -DSDL_OPENGL=ON -DCMAKE_BUILD_TYPE=release
+
+      - name: Build SDL3 for Emscripten
+        working-directory: SDL3_extracted/SDL3-3.1.6/build_files_emscripten
+        run: |
+          ninja
+
+      - name: Upload Emscripten artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: emscripten-artifact
+          path: SDL3_extracted/SDL3-3.1.6/build_files_emscripten
+
 
   windows:
     runs-on: windows-latest
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-
       - name: Install dependencies
         run: |
           choco install -y cmake dart-sdk visualstudio2022buildtools visualstudio2022-workload-vctools vulkan-sdk
@@ -96,9 +159,9 @@ jobs:
       - name: Extract SDL3 Source
         run: |
           unzip SDL3.zip -d SDL3_extracted
-          cd SDL3_extracted
 
       - name: Generate build files
+        working-directory: SDL3_extracted/SDL3-3.1.6
         run: |
           cmake -B build_files \
             -G "Visual Studio 17 2022" \
@@ -108,10 +171,9 @@ jobs:
             -DSDL_DIRECTX=ON
 
       - name: Build SDL3 for Windows
+        working-directory: SDL3_extracted/SDL3-3.1.6/build_files
         run: |
-          cd build_files 
           ninja
-  
 
   macOS:
     runs-on: macos-latest
@@ -132,24 +194,30 @@ jobs:
       - name: Extract SDL3 Source
         run: |
           unzip SDL3.zip -d SDL3_extracted
-          cd SDL3_extracted
 
-      - name: Generate build files
+      - name: Generate build files for macOS
+        working-directory: SDL3_extracted/SDL3-3.1.6
         run: |
           cmake \
             -B build_files \
             -G Ninja \
             -DSDL_METAL=ON \
             -DSDL_VULKAN=ON
-          cd build_files
 
       - name: Build SDL3 for macOS
+        working-directory: SDL3_extracted/SDL3-3.1.6/build_files
         run: |
           ninja
 
-      - name: Build SDL3 for iOS
+      - name: Generate build files for iOS
+        working-directory: SDL3_extracted/SDL3-3.1.6
         run: |
-          cd ..
-          cmake -G Ninja -B build_files -DSDL_METAL=ON
-          cd build_files
+          cmake \
+            -G Ninja \
+            -B build_files_ios \
+            -DSDL_METAL=ON
+
+      - name: Build SDL3 for iOS
+        working-directory: SDL3_extracted/SDL3-3.1.6/build_files_ios
+        run: |
           ninja
