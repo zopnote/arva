@@ -31,14 +31,11 @@ jobs:
         run: |
           curl -L -o SDL3.zip https://github.com/libsdl-org/SDL/releases/download/preview-3.1.6/SDL3-3.1.6.zip
 
-      - name: Extract SDL3 Source
+      - name: Generate build files for Linux
         run: |
           sudo apt-get install -y unzip
           unzip SDL3.zip -d SDL3_extracted
           cd SDL3_extracted/SDL3-3.1.6
-
-      - name: Generate build files for Linux
-        run: |
           cmake -G Ninja -B build_files -DSDL_VULKAN=ON -DSDL_OPENGL=ON -DCMAKE_BUILD_TYPE=release
           cd build_files
 
@@ -66,5 +63,89 @@ jobs:
         run: |
           cd build_files 
           ninja
-          
+  
+  
+  
+  
 
+  windows:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Install dependencies
+        run: |
+          choco install -y cmake dart-sdk visualstudio2022buildtools visualstudio2022-workload-vctools vulkan-sdk
+
+      - name: Set up Vulkan SDK
+        run: |
+          setx VULKAN_SDK "C:\VulkanSDK\1.3.261.1" /M
+          setx PATH "%VULKAN_SDK%\Bin;%PATH%" /M
+          setx VK_ICD_FILENAMES "%VULKAN_SDK%\etc\vulkan\icd.d" /M
+          setx VK_LAYER_PATH "%VULKAN_SDK%\etc\vulkan\explicit_layer.d" /M
+
+      - name: Download SDL3 Source
+        run: |
+          curl -L -o SDL3.zip https://github.com/libsdl-org/SDL/releases/download/preview-3.1.6/SDL3-3.1.6.zip
+
+      - name: Extract SDL3 Source
+        run: |
+          unzip SDL3.zip -d SDL3_extracted
+          cd SDL3_extracted
+
+      - name: Generate build files
+        run: |
+          cmake -B build_files \
+            -G "Visual Studio 17 2022" \
+            -A x64 \
+            -DSDL_VULKAN=ON \
+            -DSDL_OPENGL=ON \
+            -DSDL_DIRECTX=ON
+
+      - name: Build SDL3 for Windows
+        run: |
+          cd build_files 
+          ninja
+  
+
+  macOS:
+    runs-on: macos-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup dependencies
+        run: |
+          brew install cmake ninja python3 sdl2 sdl2_mixer sdl2_image sdl2_ttf pkg-config
+          brew tap dart-lang/dart
+          brew install dart
+
+      - name: Download SDL3 Source
+        run: |
+          curl -L -o SDL3.zip https://github.com/libsdl-org/SDL/releases/download/preview-3.1.6/SDL3-3.1.6.zip
+
+      - name: Extract SDL3 Source
+        run: |
+          unzip SDL3.zip -d SDL3_extracted
+          cd SDL3_extracted
+
+      - name: Generate build files
+        run: |
+          cmake \
+            -B build_files \
+            -G Ninja \
+            -DSDL_METAL=ON \
+            -DSDL_VULKAN=ON
+          cd build_files
+
+      - name: Build SDL3 for macOS
+        run: |
+          ninja
+
+      - name: Build SDL3 for iOS
+        run: |
+          cd ..
+          cmake -G Ninja -B build_files -DSDL_METAL=ON
+          cd build_files
+          ninja
