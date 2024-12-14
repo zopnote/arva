@@ -1,0 +1,39 @@
+name: ui
+description: "A new Flutter project."
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.5.3
+
+dependencies:
+  animated_text_kit: ^4.2.2
+  bitsdojo_window: ^0.1.6
+  carbon_icons: ^0.0.1+2
+  desktop_scrollbar: ^1.0.5
+  dyn_mouse_scroll: ^1.0.7
+  flutter:
+    sdk: flutter
+  google_fonts: ^6.2.1
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/logo_blur.png
+    - assets/logo_til.png
+    - assets/logo_mini.png
+    - assets/images/logo/minimal/24.png
+    - assets/images/logo/minimal/56.png
+    - assets/images/logo/minimal/86.png
+    - assets/images/logo/minimal/124.png
+    - assets/images/logo/minimal/226.png
+    - assets/images/logo/dioxide/24.png
+    - assets/images/logo/dioxide/56.png
+    - assets/images/logo/dioxide/86.png
+    - assets/images/logo/dioxide/124.png
+    - assets/images/logo/dioxide/226.png
+    - assets/images/title/dioxide/only/24.png
+    - assets/images/title/dioxide/only/56.png
+    - assets/images/title/dioxide/only/86.png
+    - assets/images/title/dioxide/only/124.png
+    - assets/images/title/dioxide/only/226.png

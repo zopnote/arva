@@ -1,10 +1,9 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'environment.dart';
 
 Directory get configDirectory {
-  final String directoryPath = '${getScriptFolder()}/internal/';
+  final String directoryPath = '${File(Platform.script.path).parent.path}/internal/';
   return Directory(
       Platform.isWindows ? directoryPath.substring(1) : directoryPath
   );

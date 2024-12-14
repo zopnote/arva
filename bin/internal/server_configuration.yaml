@@ -1,0 +1,5 @@
+storage_server:
+  url: "https://storage.addvertex.com/"
+  path: "arva/"
+  artifact_path_scheme: "${KEY}::${VERSION}/"
+  request_path_scheme: "${KEY}::${REQUEST}/"

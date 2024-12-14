@@ -10,8 +10,6 @@ def define_values():
     script_dir = os.path.dirname(os.path.realpath(__file__))
     values = {
         "generator": "Ninja",
-        "dart-sdk_dartLocation": os.path.dirname(shutil.which("dart")),
-        "python_pythonInterpreterLocation": os.path.dirname(shutil.which("python")),
         "outputDirectory": f"{script_dir}/out",
         "buildDirectory": f"{script_dir}/out/generated",
         "installDirectory": f"{script_dir}/out/arva",
@@ -115,7 +113,7 @@ def execute_specified_action(args, values, script_dir):
 def get_architecture():
     arch = platform.processor().split(" ")[0].lower()
     if arch == "amd64":
-        arch = "x86"
+        arch = "x64"
     return arch
 
 
@@ -156,8 +154,7 @@ def run_cmake_command(values, short_mode):
                     f"-G {values['generator']} "
                     f"-B \"{values['buildDirectory']}\" "
                     f"-DCMAKE_BUILD_TYPE={get_build_type(values['config_configuration'])} "
-                    f"-DDART_SDK=\"{values['dart-sdk_dartLocation']}\" "
-                    f"-DPYTHON=\"{values['python_pythonInterpreterLocation']}\" "
+                    f"-DARCHITECTURE=\"{get_architecture()}\" "
                     f"-DTARGET={values['target']} ", short_mode)
 
 

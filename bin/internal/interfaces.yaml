@@ -1,0 +1,8 @@
+path_relative_to_bin: "ui/ui.exe"
+configurations:
+  blank_editor:
+    description: "Open a blank editor."
+    arguments: "--window=blank_edit"
+  project_overview:
+    description: "Open a graph representing the project"
+    arguments: "--window=project_overview --path=${PROJECT_PATH}"

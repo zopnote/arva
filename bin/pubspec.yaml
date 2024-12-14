@@ -3,4 +3,4 @@ name: arva_tool
 environment:
   sdk: ^3.4.0
 dependencies:
-  bson: 5.0.3
+  yaml: ^3.1.2
