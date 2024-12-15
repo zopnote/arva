@@ -21,4 +21,3 @@ add_custom_target(compile_dart ALL DEPENDS ${OUTPUT_EXECUTABLE})
 
 install(FILES ${OUTPUT_EXECUTABLE} DESTINATION bin)
 install(DIRECTORY ${CMAKE_SOURCE_DIR}/bin/internal DESTINATION bin)
-add_subdirectory(ui)

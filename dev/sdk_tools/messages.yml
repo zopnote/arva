@@ -1,3 +1,0 @@
-main:
-  help: ad
-  not_enough_arguments: Please specify an action with valid arguments. For help use --help as a flag.

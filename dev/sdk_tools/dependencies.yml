@@ -1,4 +1,0 @@
-build_dependencies:
-  win:
-    - dart
-    - clang
